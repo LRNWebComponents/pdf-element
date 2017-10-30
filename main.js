@@ -7,6 +7,8 @@
     this.element = el;
     this.reader = Polymer.dom(el.root).querySelector('.pdf-viewer');
     this.viewportOut = this.reader.querySelector('.pdf-viewport-out');
+    this.element = this.reader.querySelector('.pdf-element');
+    this.container = this.reader.querySelector('.sidebar');
     this.toolbar = this.reader.querySelector('.pdf-toolbar');
     this.toolbarHeight = 0;
     this.title = this.toolbar.querySelector('.title');
@@ -25,6 +27,8 @@
     this.totalPages = this.reader.querySelector('#totalPages');
     this.viewportStyle = this.viewport.style;
     this.viewportOutStyle = this.viewportOut.style;
+
+    this.element = this.reader.querySelector('.pdf-element');
 
     this.ctx = this.viewport.getContext('2d');
 
@@ -80,15 +84,15 @@
     }
   };
 
-  Reader.prototype.loadPDF = function() {
+  Reader.prototype.loadPDF = function(pageNum) {
     this.setSize();
+    pageNum = 1;
     var self = this;
-
     PDFJS.getDocument(this.SRC).then(function(pdf) {
       self.PDF = pdf;
-      self.queueRenderPage(1);
+      self.queueRenderPage(pageNum);
 
-      self.currentPage = 1;
+      self.currentPage = pageNum;
       self.totalPages.innerHTML = self.PDF.numPages;
       self.totalPagesNum = self.PDF.numPages;
       self.currentZoomVal = self.fitZoomVal = self.widthZoomVal = 0;
@@ -113,6 +117,161 @@
         self.currentZoomVal = self.fitZoomVal = self.widthZoomVal = 0;
       self.createDownloadLink();
     });
+  };
+
+  Reader.prototype.sidebarSetup = function(currentThis){
+    var self = this;
+    var pdfName = currentThis.src;
+    var currPage = 1; //Pages are 1-based not 0-based
+    var numPages = 0;
+    var pdfObj = null;
+
+    //If there is already a sidebar loaded
+    if(self.container.innerHTML != " "){
+      if(currentThis.changedSideBar){   //Check if the pdf has been changed
+
+        self.container.innerHTML = "";
+        // Asynchronous download PDF
+        PDFJS.getDocument(this.SRC).then(function(pdf) {
+
+          //Set PDFJS global object (so we can easily access in our page functions
+          pdfObj = pdf;
+
+          //How many pages it has
+          numPages = pdfObj.numPages;
+          //numPages = 5;
+
+
+          // Get div#container and cache it for later use
+          var container = self.container;
+          var counter = 0;
+
+          pdf.getPage( 1 ).then( handlePages );
+
+          function handlePages(page){
+            //if(page.pageIndex == counter){
+            var scale = 0.15;
+            var viewport = page.getViewport(scale);
+            var div = document.createElement("div");
+
+            // Set id attribute with page-#{pdf_page_number} format
+            var pageString = (page.pageIndex + 1).toString();
+            div.setAttribute("id", "page-" + pageString + "-" + pdfName);
+
+            // This will keep positions of child elements as per our needs
+            div.style.backgroundColor = "gray";
+
+            var click = document.querySelector('pdf-element');
+
+            // Create a new Canvas element
+            var canvas = document.createElement("canvas");
+            // Append Canvas within div#page-#{pdf_page_number}
+            div.appendChild(canvas);
+
+            // Append div within div#container
+            container.appendChild(div);
+
+            //Add event listener for selecting that page.
+            document.getElementById("page-" + (page.pageIndex+1) + "-" + pdfName.toString()).addEventListener('click',function(){
+              var testPage = page.pageIndex + 1;
+              click.sideBarClick(testPage, currentThis.instance, currentThis);
+            });
+
+            var context = canvas.getContext('2d');
+            canvas.height = viewport.height;
+            canvas.width = viewport.width;
+
+            var renderContext = {
+              canvasContext: context,
+              viewport: viewport
+            };
+
+            // Render PDF page
+            page.render(renderContext);
+              
+            //Move to next page
+            currPage++;
+            if ( pdfObj !== null && currPage <= numPages )
+            {
+                pdfObj.getPage( currPage ).then( handlePages );
+            }
+          }
+        });
+      }
+    }
+
+    //Else sidebar has not been loaded for first time
+    else{
+      self.container.innerHTML = "";
+      // Asynchronous download PDF
+      PDFJS.getDocument(this.SRC).then(function(pdf) {
+
+        //Set PDFJS global object (so we can easily access in our page functions
+        pdfObj = pdf;
+
+        //How many pages it has
+        numPages = pdfObj.numPages;
+        //numPages = 5;
+
+
+        // Get div#container and cache it for later use
+        var container = self.container;
+        var counter = 0;
+
+        pdf.getPage( 1 ).then( handlePages );
+
+        function handlePages(page){
+          //if(page.pageIndex == counter){
+          var scale = 0.15;
+          var viewport = page.getViewport(scale);
+          var div = document.createElement("div");
+
+          // Set id attribute with page-#{pdf_page_number} format
+          var pageString = (page.pageIndex + 1).toString();
+          div.setAttribute("id", "page-" + pageString + "-" + pdfName);
+
+          // This will keep positions of child elements as per our needs
+          div.style.backgroundColor = "gray";
+
+          var click = document.querySelector('pdf-element');
+          //click = self.element;
+
+          // Create a new Canvas element
+          var canvas = document.createElement("canvas");
+          // Append Canvas within div#page-#{pdf_page_number}
+          div.appendChild(canvas);
+
+          // Append div within div#container
+          container.appendChild(div);
+
+          //Add click event for each individual page
+          document.getElementById("page-" + (page.pageIndex+1) + "-" + pdfName.toString()).addEventListener('click',function(){
+            var testPage = page.pageIndex + 1;
+            click.sideBarClick(testPage, currentThis.instance, currentThis);
+          });
+
+          var context = canvas.getContext('2d');
+          canvas.height = viewport.height;
+          canvas.width = viewport.width;
+
+          var renderContext = {
+            canvasContext: context,
+            viewport: viewport
+          };
+
+          // Render PDF page
+
+          page.render(renderContext);
+            
+          //Move to next page
+          currPage++;
+          if ( pdfObj !== null && currPage <= numPages )
+          {
+              pdfObj.getPage( currPage ).then( handlePages );
+          }
+        }
+      });
+    }
   };
 
   Reader.prototype.renderPDF = function(pageNum, resize, isFull) {
@@ -261,7 +420,7 @@
 
   Reader.prototype.changePDFSource = function(newSrc) {
     this.setSrc(newSrc);
-    this.loadPDF();
+    this.loadPDF(1);
   };
 
   Reader.prototype.zoomInOut = function(step) {
@@ -325,4 +484,4 @@
   };
 
   window.Polymer.Reader = Reader;
-})(window);
+})(window); 

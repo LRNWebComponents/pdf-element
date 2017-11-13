@@ -81,12 +81,12 @@ Another awesome feature is dynamically load PDF file. So you can change the `src
       }
 
       .sidebar {
-      background-color: gray;
-      float: left;
-      height: 900px;
-      overflow: scroll;
-      margin-left: -25%;
-      visibility: hidden;
+        background-color: gray;
+        float: left;
+        height: 0px;
+        overflow: scroll;
+        margin-left: -25%;
+        visibility: hidden;
       }
 
       .main {
@@ -141,8 +141,8 @@ Another awesome feature is dynamically load PDF file. So you can change the `src
     </style>
 
     <paper-material elevation="{{elevation}}">
-      <div class="card-content">
-        <paper-card style="width: 100%">
+      <div class="card-content" style="width: {{width}}px">
+        <paper-card class="paperCard" style="width: {{width}}px">
           <div class="pdf-viewer">
             <paper-toolbar class="pdf-toolbar">
               <paper-icon-button icon="menu" on-click="sideBar"></paper-icon-button>
@@ -160,7 +160,7 @@ Another awesome feature is dynamically load PDF file. So you can change the `src
               <paper-icon-button id="zoomIcon" icon="fullscreen" on-click="zoomFit"></paper-icon-button>
               <paper-icon-button icon="file-download" hidden$="{{!downloadable}}" on-click="download"></paper-icon-button>
             </paper-toolbar>
-            <div id="container" class="sidebar" style="width:25%" style="visibility:"> </div>   
+            <div id="container" class="sidebar" style="width:25%"> </div>   
             <div id="main" >
             <div id="test" class="pdf-viewport-out">
               <canvas class="pdf-viewport"></canvas>
@@ -232,6 +232,10 @@ Another awesome feature is dynamically load PDF file. So you can change the `src
             type: Boolean,
             value: false
         },
+        width:{
+          type: Number,
+          value: 500
+        }
       },
 
       attached: function() {
@@ -254,8 +258,11 @@ Another awesome feature is dynamically load PDF file. So you can change the `src
       attributeChanged: function(name, type) {
         if (name === 'src') {
           if (typeof this.instance == 'undefined') this._initializeReader();
-          else { this.loadPDF();
+          else { 
+                this.loadPDF();
                 this.changedSideBar = true;
+                this.fromChange = true;
+                this.sideBar();
                 }
 
         } else if (name === 'fitWidth') {
@@ -312,15 +319,17 @@ Another awesome feature is dynamically load PDF file. So you can change the `src
 
       sideBarClick: function(page, currentInstance, currentThis) {
         //this.instance = currentInstance;
-        var test = currentInstance;
+        var parsedFileName = currentThis.src.split('/').pop()
+        var self = currentInstance;
+        currentThis.sidebarOpen = true;
         if ((1 <= page) && (page <= this.instance.totalPagesNum)) {
-          test.currentPage = page;
-          test.queueRenderPage(test.currentPage);
+          self.currentPage = page;
+          self.queueRenderPage(self.currentPage);
           currentInstance.currentPage = page;
           currentThis.currentPage = page;
           this.$.input.blur();
         } else {
-          this.$.input.value = test.currentPage;
+          this.$.input.value = self.currentPage;
           this.$.input.blur();
         }
       },
@@ -340,18 +349,27 @@ Another awesome feature is dynamically load PDF file. So you can change the `src
         }
       },
       sideBar: function(){
-        this.$.container.style.height = this.$.test.style.height;
-        if(this.$.main.style.marginLeft == "25%"){
-          this.$.main.style.marginLeft = "0%";
-          this.$.container.style.marginLeft = "-25%";
-          this.$.container.style.visibility = "hidden";
+        if(!this.fromChange){
+          this.$.container.style.height = this.$.test.style.height;
+          this.$.container.style.width = this.$.test.style.width;
+          if(this.$.main.style.marginLeft == "25%"){
+            this.sidebarOpen = false;
+            this.instance.setViewportPos(false);
+            this.$.main.style.marginLeft = "0%";
+            this.$.container.style.marginLeft = "-25%";
+            this.$.container.style.visibility = "hidden";
 
+
+          }
+          else{
+            this.sidebarOpen = true;
+            this.$.main.style.marginLeft = "25%";
+            this.$.container.style.marginLeft = "0%";
+            this.$.container.style.visibility = "visible";
+            this.instance.setViewportPos(true);
+          }
         }
-        else{
-          this.$.main.style.marginLeft = "25%";
-          this.$.container.style.marginLeft = "0%";
-          this.$.container.style.visibility = "visible";
-        }
+        this.fromChange = false;
         this.instance.sidebarSetup(this);
         this.changedSideBar = false;
       },

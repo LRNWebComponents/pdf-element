@@ -10,11 +10,13 @@
     this.element = this.reader.querySelector('.pdf-element');
     this.container = this.reader.querySelector('.sidebar');
     this.toolbar = this.reader.querySelector('.pdf-toolbar');
+    this.card = Polymer.dom(el.root).querySelector('.style-scope');
     this.toolbarHeight = 0;
     this.title = this.toolbar.querySelector('.title');
     this.enableTextSelection = el.enableTextSelection;
     this.fitWidth = el.fitWidth;
     this.HEIGHT = el.getAttribute('height');
+    this.WIDTH = el.getAttribute('width');
 
     this.viewport = this.reader.querySelector('.pdf-viewport');
 
@@ -28,8 +30,6 @@
     this.viewportStyle = this.viewport.style;
     this.viewportOutStyle = this.viewportOut.style;
 
-    this.element = this.reader.querySelector('.pdf-element');
-
     this.ctx = this.viewport.getContext('2d');
 
     this.SRC = el.src;
@@ -42,10 +42,14 @@
   };
 
   Reader.prototype.setSize = function(attrName, newVal) {
-
-    this.WIDTH = this.viewportOut.offsetWidth;
-    if (!this.HEIGHT)
+    if(!this.WIDTH){
+      this.WIDTH = this.viewportOut.offsetWidth;
+    }
+    //this.width = 100;
+    if (!this.HEIGHT){
       this.HEIGHT = this.viewportOut.offsetHeight;
+    }
+
 
     var width = this.WIDTH,
       height = this.HEIGHT;
@@ -58,13 +62,7 @@
       height = newVal;
     }
 
-    // this.element.style.width = this.reader.style.width = width + 'px';
-    // this.element.style.height = this.reader.style.height = height + 'px';
-    // this.element.style.height = this.reader.style.height = this.HEIGHT + 64 + 'px';
-
-    // this.viewportOutStyle.width = width + 'px';
     this.viewportOutStyle.height = height + 'px';
-
     this.spinner.style.top = (height - this.toolbarHeight) / 2 + 'px';
   };
 
@@ -129,7 +127,6 @@
     //If there is already a sidebar loaded
     if(self.container.innerHTML != " "){
       if(currentThis.changedSideBar){   //Check if the pdf has been changed
-
         self.container.innerHTML = "";
         // Asynchronous download PDF
         PDFJS.getDocument(this.SRC).then(function(pdf) {
@@ -139,8 +136,6 @@
 
           //How many pages it has
           numPages = pdfObj.numPages;
-          //numPages = 5;
-
 
           // Get div#container and cache it for later use
           var container = self.container;
@@ -149,14 +144,23 @@
           pdf.getPage( 1 ).then( handlePages );
 
           function handlePages(page){
-            //if(page.pageIndex == counter){
-            var scale = 0.15;
+            var scale = 0.14;
+            var scaleWidth = 0;
+            if(currentThis.sidebarOpen){
+              scaleWidth = self.WIDTH;
+            }
+            else{
+              scaleWidth = self.WIDTH;
+            }
+            scale = scaleWidth * .0004023;
             var viewport = page.getViewport(scale);
             var div = document.createElement("div");
 
             // Set id attribute with page-#{pdf_page_number} format
             var pageString = (page.pageIndex + 1).toString();
-            div.setAttribute("id", "page-" + pageString + "-" + pdfName);
+            var parsedFileName = pdfName.split('/').pop();
+            div.setAttribute("id", "page-" + pageString + "-" + parsedFileName);
+
 
             // This will keep positions of child elements as per our needs
             div.style.backgroundColor = "gray";
@@ -172,7 +176,7 @@
             container.appendChild(div);
 
             //Add event listener for selecting that page.
-            document.getElementById("page-" + (page.pageIndex+1) + "-" + pdfName.toString()).addEventListener('click',function(){
+            document.getElementById("page-" + (page.pageIndex+1) + "-" + parsedFileName.toString()).addEventListener('click',function(){
               var testPage = page.pageIndex + 1;
               click.sideBarClick(testPage, currentThis.instance, currentThis);
             });
@@ -197,6 +201,7 @@
             }
           }
         });
+        self.setViewportPos(false);
       }
     }
 
@@ -213,7 +218,6 @@
         numPages = pdfObj.numPages;
         //numPages = 5;
 
-
         // Get div#container and cache it for later use
         var container = self.container;
         var counter = 0;
@@ -222,13 +226,14 @@
 
         function handlePages(page){
           //if(page.pageIndex == counter){
-          var scale = 0.15;
+          var scale = self.WIDTH * .0004023;
           var viewport = page.getViewport(scale);
           var div = document.createElement("div");
 
           // Set id attribute with page-#{pdf_page_number} format
           var pageString = (page.pageIndex + 1).toString();
-          div.setAttribute("id", "page-" + pageString + "-" + pdfName);
+          var parsedFileName = pdfName.split('/').pop();
+          div.setAttribute("id", "page-" + pageString + "-" + parsedFileName + "-" + currentThis.height);
 
           // This will keep positions of child elements as per our needs
           div.style.backgroundColor = "gray";
@@ -245,7 +250,7 @@
           container.appendChild(div);
 
           //Add click event for each individual page
-          document.getElementById("page-" + (page.pageIndex+1) + "-" + pdfName.toString()).addEventListener('click',function(){
+          document.getElementById("page-" + (page.pageIndex+1) + "-" + parsedFileName.toString() + "-" + currentThis.height).addEventListener('click',function(){
             var testPage = page.pageIndex + 1;
             click.sideBarClick(testPage, currentThis.instance, currentThis);
           });
@@ -271,6 +276,7 @@
           }
         }
       });
+      self.setViewportPos(true);
     }
   };
 
@@ -279,11 +285,11 @@
     self.pageRendering = true;
     self.spinner.active = true;
     this.PDF.getPage(pageNum).then(function(page) {
-      var scaleW, scaleH, viewerViewport, scale, radians;
-      radians = page.pageInfo.rotate * Math.PI / 180;
+    var scaleW, scaleH, viewerViewport, scale, radians;
+    radians = page.pageInfo.rotate * Math.PI / 180;
 
-      self.pageW = Math.abs((page.view[2]*Math.cos(radians)) + (page.view[3]*Math.sin(radians)));
-      self.pageH = Math.abs((page.view[3]*Math.cos(radians)) + (page.view[2]*Math.sin(radians)));
+    self.pageW = Math.abs((page.view[2]*Math.cos(radians)) + (page.view[3]*Math.sin(radians)));
+    self.pageH = Math.abs((page.view[3]*Math.cos(radians)) + (page.view[2]*Math.sin(radians)));
 
       if (self.currentZoomVal === 0 || !!resize) {
         scaleW = Math.round((self.WIDTH / self.pageW) * 100) / 100,
@@ -308,7 +314,13 @@
         self.pageW = self.pageW * scale;
         self.pageH = self.pageH * scale;
 
-        self.setViewportPos();
+        if(self.WIDTH == self.currentWidth || self.currentWidth == null){
+          self.setViewportPos(false);
+
+        }
+        else{
+          self.setViewportPos(true);
+        }
 
         self.viewport.width = self.pageW;
         self.viewport.height = self.pageH;
@@ -321,9 +333,7 @@
         }
         self.ctx.clearRect(0, 0, self.viewport.width, self.viewport.height);
 
-
         if (isFull){
-
           var wrapper = document.createElement('div');
           wrapper.setAttribute("style", "position: relative");
           var canvas = document.createElement('canvas');
@@ -363,7 +373,6 @@
           }
 
         } else{
-
           var renderTask = page.render({
             canvasContext: self.ctx,
             viewport: viewerViewport
@@ -396,12 +405,18 @@
     });
   };
 
-  Reader.prototype.setViewportPos = function() {
-    if (this.pageW < this.WIDTH)
-      this.viewportStyle.left = (this.WIDTH - this.pageW) / 2 + 'px';
+  Reader.prototype.setViewportPos = function(sidebarAdjust) {
+    if(sidebarAdjust){
+      this.currentWidth = this.WIDTH * 0.75;
+    }
+    else{
+      this.currentWidth = this.WIDTH;
+    }
+    if (this.pageW < this.currentWidth){
+      this.viewportStyle.left = (this.currentWidth - this.pageW) / 2 + 'px';
+    }
     else
       this.viewportStyle.left = 0;
-
     if (this.pageH < this.HEIGHT) {
       this.viewportStyle.top = (this.HEIGHT - this.pageH - this.toolbarHeight) / 2 + 'px';
       this.viewportStyle.topNum = Math.floor((this.HEIGHT - this.pageH - this.toolbarHeight) / 2) + this.toolbarHeight;

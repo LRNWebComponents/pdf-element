@@ -176,7 +176,8 @@
             container.appendChild(div);
 
             //Add event listener for selecting that page.
-            document.getElementById("page-" + (page.pageIndex+1) + "-" + parsedFileName.toString()).addEventListener('click',function(){
+            var addPage = Polymer.dom(self.container).childNodes[page.pageIndex];
+            addPage.addEventListener('click',function(){
               var testPage = page.pageIndex + 1;
               click.sideBarClick(testPage, currentThis.instance, currentThis);
             });
@@ -249,12 +250,11 @@
           // Append div within div#container
           container.appendChild(div);
 
-          //Add click event for each individual page
-          document.getElementById("page-" + (page.pageIndex+1) + "-" + parsedFileName.toString() + "-" + currentThis.height).addEventListener('click',function(){
-            var testPage = page.pageIndex + 1;
-            click.sideBarClick(testPage, currentThis.instance, currentThis);
-          });
-
+          var addPage = Polymer.dom(self.container).childNodes[page.pageIndex];
+            addPage.addEventListener('click',function(){
+              var testPage = page.pageIndex + 1;
+              click.sideBarClick(testPage, currentThis.instance, currentThis);
+            });
           var context = canvas.getContext('2d');
           canvas.height = viewport.height;
           canvas.width = viewport.width;

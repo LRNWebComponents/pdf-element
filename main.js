@@ -142,69 +142,11 @@
           var counter = 0;
 
           pdf.getPage( 1 ).then( handlePages );
-
-          function handlePages(page){
-            var scale = 0.14;
-            var scaleWidth = 0;
-            if(currentThis.sidebarOpen){
-              scaleWidth = self.WIDTH;
-            }
-            else{
-              scaleWidth = self.WIDTH;
-            }
-            scale = scaleWidth * .0004023;
-            var viewport = page.getViewport(scale);
-            var div = document.createElement("div");
-
-            // Set id attribute with page-#{pdf_page_number} format
-            var pageString = (page.pageIndex + 1).toString();
-            var parsedFileName = pdfName.split('/').pop();
-            div.setAttribute("id", "page-" + pageString + "-" + parsedFileName);
-
-
-            // This will keep positions of child elements as per our needs
-            div.style.backgroundColor = "gray";
-
-            var click = document.querySelector('pdf-element');
-
-            // Create a new Canvas element
-            var canvas = document.createElement("canvas");
-            // Append Canvas within div#page-#{pdf_page_number}
-            div.appendChild(canvas);
-
-            // Append div within div#container
-            container.appendChild(div);
-
-            //Add event listener for selecting that page.
-            var addPage = Polymer.dom(self.container).childNodes[page.pageIndex];
-            addPage.addEventListener('click',function(){
-              var testPage = page.pageIndex + 1;
-              click.sideBarClick(testPage, currentThis.instance, currentThis);
-            });
-
-            var context = canvas.getContext('2d');
-            canvas.height = viewport.height;
-            canvas.width = viewport.width;
-
-            var renderContext = {
-              canvasContext: context,
-              viewport: viewport
-            };
-
-            // Render PDF page
-            page.render(renderContext);
-              
-            //Move to next page
-            currPage++;
-            if ( pdfObj !== null && currPage <= numPages )
-            {
-                pdfObj.getPage( currPage ).then( handlePages );
-            }
-          }
         });
         self.setViewportPos(false);
       }
     }
+
 
     //Else sidebar has not been loaded for first time
     else{
@@ -224,60 +166,68 @@
         var counter = 0;
 
         pdf.getPage( 1 ).then( handlePages );
-
-        function handlePages(page){
-          //if(page.pageIndex == counter){
-          var scale = self.WIDTH * .0004023;
-          var viewport = page.getViewport(scale);
-          var div = document.createElement("div");
-
-          // Set id attribute with page-#{pdf_page_number} format
-          var pageString = (page.pageIndex + 1).toString();
-          var parsedFileName = pdfName.split('/').pop();
-          div.setAttribute("id", "page-" + pageString + "-" + parsedFileName + "-" + currentThis.height);
-
-          // This will keep positions of child elements as per our needs
-          div.style.backgroundColor = "gray";
-
-          var click = document.querySelector('pdf-element');
-          //click = self.element;
-
-          // Create a new Canvas element
-          var canvas = document.createElement("canvas");
-          // Append Canvas within div#page-#{pdf_page_number}
-          div.appendChild(canvas);
-
-          // Append div within div#container
-          container.appendChild(div);
-
-          var addPage = Polymer.dom(self.container).childNodes[page.pageIndex];
-            addPage.addEventListener('click',function(){
-              var testPage = page.pageIndex + 1;
-              click.sideBarClick(testPage, currentThis.instance, currentThis);
-            });
-          var context = canvas.getContext('2d');
-          canvas.height = viewport.height;
-          canvas.width = viewport.width;
-
-          var renderContext = {
-            canvasContext: context,
-            viewport: viewport
-          };
-
-          // Render PDF page
-
-          page.render(renderContext);
-            
-          //Move to next page
-          currPage++;
-          if ( pdfObj !== null && currPage <= numPages )
-          {
-              pdfObj.getPage( currPage ).then( handlePages );
-          }
-        }
       });
       self.setViewportPos(true);
     }
+      function handlePages(page){
+        var scale = 0.14;
+        var scaleWidth = 0;
+        var container = self.container;
+        if(currentThis.sidebarOpen){
+          scaleWidth = self.WIDTH;
+        }
+        else{
+          scaleWidth = self.WIDTH;
+        }
+        scale = scaleWidth * .0004023;
+        var viewport = page.getViewport(scale);
+        var div = document.createElement("div");
+
+        // Set id attribute with page-#{pdf_page_number} format
+        var pageString = (page.pageIndex + 1).toString();
+        var parsedFileName = pdfName.split('/').pop();
+        //div.setAttribute("id", "page-" + pageString + "-" + parsedFileName);
+
+
+        // This will keep positions of child elements as per our needs
+        div.style.backgroundColor = "gray";
+
+        var click = document.querySelector('pdf-element');
+
+        // Create a new Canvas element
+        var canvas = document.createElement("canvas");
+        // Append Canvas within div#page-#{pdf_page_number}
+        div.appendChild(canvas);
+
+        // Append div within div#container
+        container.appendChild(div);
+
+        //Add event listener for selecting that page.
+        var addPage = Polymer.dom(self.container).childNodes[page.pageIndex];
+        addPage.addEventListener('click',function(){
+          var testPage = page.pageIndex + 1;
+          click.sideBarClick(testPage, currentThis.instance, currentThis);
+        });
+
+        var context = canvas.getContext('2d');
+        canvas.height = viewport.height;
+        canvas.width = viewport.width;
+
+        var renderContext = {
+          canvasContext: context,
+          viewport: viewport
+        };
+
+        // Render PDF page
+        page.render(renderContext);
+          
+        //Move to next page
+        currPage++;
+        if ( pdfObj !== null && currPage <= numPages )
+        {
+            pdfObj.getPage( currPage ).then( handlePages );
+        }
+      }
   };
 
   Reader.prototype.renderPDF = function(pageNum, resize, isFull) {

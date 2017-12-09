@@ -6,7 +6,8 @@
 <link rel="import" href="../iron-input/iron-input.html">
 <link rel="import" href="../paper-spinner/paper-spinner.html">
 <link rel="import" href="../paper-icon-button/paper-icon-button.html">
-
+<link rel="import" href="../hax-body-behaviors/hax-body-behaviors.html">
+<link rel="import" href="../schema-behaviors/schema-behaviors.html">
 <script src="../pdfjs-dist/web/compatibility.js"></script>
 <script src="../pdfjs-dist/build/pdf.js"></script>
 <script src="../pdfjs-dist/build/pdf.worker.js"></script>
@@ -177,6 +178,7 @@ Another awesome feature is dynamically load PDF file. So you can change the `src
   <script>
     Polymer({
       is: 'pdf-element',
+      behaviors: [HAXBehaviors.PropertiesBehaviors, SchemaBehaviors.Schema],
       properties: {
         /**
          * Source of a PDF file.
@@ -239,6 +241,73 @@ Another awesome feature is dynamically load PDF file. So you can change the `src
         this._initializeReader();
         if (this.src) this.instance.loadPDF();
         this._setFitWidth();
+        // Establish hax properties
+        let props = {
+          'canScale': true,
+          'canPosition': true,
+          'canEditSource': false,
+          'gizmo': {
+            'title': 'PDF viewer',
+            'descrption': 'This can nicely present a PDF in a standard inplace, cross browser way.',
+            'icon': 'image:picture-as-pdf',
+            'color': 'red',
+            'groups': ['Presentation', 'PDF', 'Data'],
+            'handles': [
+              {
+                'type': 'pdf',
+                'url': 'src'
+              }
+            ],
+            'meta': {
+              'author': 'LRNWebComponents'
+            }
+          },
+          'settings': {
+            'quick': [
+              {
+                'property': 'src',
+                'title': 'File',
+                'description': 'The URL for the pdf',
+                'inputMethod': 'textfield',
+                'icon': 'link',
+                'required': true,
+              },
+            ],
+            'configure': [
+              {
+                'property': 'src',
+                'title': 'Source',
+                'description': 'The URL for this csv file',
+                'inputMethod': 'textfield',
+                'icon': 'link',
+                'required': true,
+              },
+              {
+                'property': 'downloadable',
+                'title': 'Downloadable',
+                'description': 'User can download this',
+                'inputMethod': 'boolean',
+                'icon': 'file-download',
+              },
+              {
+                'property': 'enableTextSelection',
+                'title': 'Text Selection',
+                'description': 'User can select text in this element.',
+                'inputMethod': 'boolean',
+                'icon': 'file-download',
+              },
+              {
+                'property': 'elevation',
+                'title': 'Elevation',
+                'description': 'Visual elevation of the element',
+                'inputMethod': 'number',
+                'icon': 'flip-to-front',
+              },
+            ],
+            'advanced': []
+          }
+        };
+        this.setHaxProperties(props);
       },
 
       loadPDF: function() {

@@ -125,7 +125,7 @@
     var pdfObj = null;
 
     //If there is already a sidebar loaded
-    if(self.container.innerHTML != " "){
+    if(self.container.innerHTML.length != 0){
       if(currentThis.changedSideBar){   //Check if the pdf has been changed
         self.container.innerHTML = "";
         // Asynchronous download PDF
@@ -148,27 +148,27 @@
     }
 
 
-    //Else sidebar has not been loaded for first time
-    else{
-      self.container.innerHTML = "";
-      // Asynchronous download PDF
-      PDFJS.getDocument(this.SRC).then(function(pdf) {
+      //Else sidebar has not been loaded for first time
+      else{
+        self.container.innerHTML = "";
+        // Asynchronous download PDF
+        PDFJS.getDocument(this.SRC).then(function(pdf) {
 
-        //Set PDFJS global object (so we can easily access in our page functions
-        pdfObj = pdf;
+          //Set PDFJS global object (so we can easily access in our page functions
+          pdfObj = pdf;
 
-        //How many pages it has
-        numPages = pdfObj.numPages;
-        //numPages = 5;
+          //How many pages it has
+          numPages = pdfObj.numPages;
 
-        // Get div#container and cache it for later use
-        var container = self.container;
-        var counter = 0;
+          // Get div#container and cache it for later use
+          var container = self.container;
+          var counter = 0;
 
-        pdf.getPage( 1 ).then( handlePages );
-      });
-      self.setViewportPos(true);
-    }
+          pdf.getPage( 1 ).then( handlePages );
+        });
+        self.setViewportPos(true);
+      }
+    
       function handlePages(page){
         var scale = 0.14;
         var scaleWidth = 0;
@@ -179,7 +179,7 @@
         else{
           scaleWidth = self.WIDTH;
         }
-        scale = scaleWidth * .0004023;
+        scale = scaleWidth * .00035;
         var viewport = page.getViewport(scale);
         var div = document.createElement("div");
 

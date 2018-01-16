@@ -353,18 +353,24 @@ Another awesome feature is dynamically load PDF file. So you can change the `src
         }
       },
       zoomIn: function() {
-        this.zoomInOut(0.1);
+        if(this.instance.pdfExists){
+          this.zoomInOut(0.1);
+        }
       },
       zoomOut: function() {
-        this.instance.zoomInOut(-0.1);
+        if(this.instance.pdfExists){
+          this.instance.zoomInOut(-0.1);
+        }
       },
       zoomFit: function() {
-        if (this.instance.currentZoomVal == this.instance.widthZoomVal) {
-          this.instance.zoomPageFit();
-          this.$.zoomIcon.icon = 'fullscreen';
-        } else {
-          this.instance.zoomWidthFit();
-          this.$.zoomIcon.icon = 'fullscreen-exit';
+        if(this.instance.pdfExists){
+          if (this.instance.currentZoomVal == this.instance.widthZoomVal) {
+            this.instance.zoomPageFit();
+            this.$.zoomIcon.icon = 'fullscreen';
+          } else {
+            this.instance.zoomWidthFit();
+            this.$.zoomIcon.icon = 'fullscreen-exit';
+          }
         }
       },
       pageNoCommitted: function() {
@@ -386,7 +392,7 @@ Another awesome feature is dynamically load PDF file. So you can change the `src
         var parsedFileName = currentThis.src.split('/').pop()
         var self = currentInstance;
         currentThis.sidebarOpen = true;
-        if ((1 <= page) && (page <= this.instance.totalPagesNum)) {
+        if ((1 <= page) && (page <= currentInstance.totalPagesNum)) {
           self.currentPage = page;
           self.queueRenderPage(self.currentPage);
           currentInstance.currentPage = page;
@@ -413,33 +419,37 @@ Another awesome feature is dynamically load PDF file. So you can change the `src
         }
       },
       sideBar: function(){
-        if(!this.fromChange){
-          this.$.container.style.height = this.$.test.style.height;
-          this.$.container.style.width = this.$.test.style.width;
-          if(this.$.main.style.marginLeft == "25%"){
-            this.sidebarOpen = false;
-            this.instance.setViewportPos(false);
-            this.$.main.style.marginLeft = "0%";
-            this.$.container.style.marginLeft = "-25%";
-            this.$.container.style.visibility = "hidden";
+        if(this.instance.pdfExists){
+          if(!this.fromChange){
+            this.$.container.style.height = this.$.test.style.height;
+            this.$.container.style.width = this.$.test.style.width;
+            if(this.$.main.style.marginLeft == "25%"){
+              this.sidebarOpen = false;
+              this.instance.setViewportPos(false);
+              this.$.main.style.marginLeft = "0%";
+              this.$.container.style.marginLeft = "-25%";
+              this.$.container.style.visibility = "hidden";
 
 
+            }
+            else{
+              this.sidebarOpen = true;
+              this.$.main.style.marginLeft = "25%";
+              this.$.container.style.marginLeft = "0%";
+              this.$.container.style.visibility = "visible";
+              this.instance.setViewportPos(true);
+            }
           }
-          else{
-            this.sidebarOpen = true;
-            this.$.main.style.marginLeft = "25%";
-            this.$.container.style.marginLeft = "0%";
-            this.$.container.style.visibility = "visible";
-            this.instance.setViewportPos(true);
-          }
+          this.fromChange = false;
+          this.instance.sidebarSetup(this);
+          this.changedSideBar = false;
         }
-        this.fromChange = false;
-        this.instance.sidebarSetup(this);
-        this.changedSideBar = false;
       },
 
       download: function() {
-        this.instance.download();
+        if(this.instance.pdfExists){
+          this.instance.download();
+        }
       }
     });
   </script>

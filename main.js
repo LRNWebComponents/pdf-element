@@ -75,6 +75,7 @@
   };
 
   Reader.prototype.queueRenderPage = function(num) {
+    this.pdfExists = true;
     if (this.pageRendering) {
       this.pageNumPending = num;
     } else {
@@ -95,6 +96,8 @@
       self.totalPagesNum = self.PDF.numPages;
       self.currentZoomVal = self.fitZoomVal = self.widthZoomVal = 0;
       self.createDownloadLink();
+    }).catch((ex) => {
+      this.pdfExists = false;
     });
   };
 

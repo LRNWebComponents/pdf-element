@@ -93,20 +93,17 @@ Another awesome feature is dynamically load PDF file. So you can change the `src
         margin-left: 0%;
       }
 
-      paper-input-container.pageselector {
-        --paper-input-container-underline: {
-          visibility: hidden;
+      .pageselector {
           width: 3ch;
+          background-color : black; 
+          font-size: 17px;
+          background-color:transparent;
+          border: 0px solid;
         }
-        ;
-        --paper-input-container-underline-focus: {
-          visibility: hidden;
+
+        .pageselector:focus{
+          outline:none;
         }
-        ;
-        display: inline-block;
-        padding: 0;
-        width: 3ch;
-      }
 
       #input {
         -webkit-margin-start: -3px;
@@ -147,9 +144,7 @@ Another awesome feature is dynamically load PDF file. So you can change the `src
             <paper-toolbar class="pdf-toolbar">
               <paper-icon-button icon="menu" on-click="sideBar"></paper-icon-button>
               <paper-icon-button icon="arrow-back" on-click="showPrev"></paper-icon-button>
-              <paper-input-container class="pageselector" no-label-float>
-                <input id="input" is="iron-input" value="{{currentPage}}" prevent-invalid-input allowed-pattern="\d" on-change="pageNoCommitted">
-              </paper-input-container>
+              <input class="pageselector" id="input" is="iron-input" value="{{currentPage}}" prevent-invalid-input allowed-pattern="\d" on-change="pageNoCommitted">
               <span id="slash">/</span><span id="totalPages"></span>
               <paper-icon-button icon="arrow-forward" on-click="showNext"></paper-icon-button>
               <span class="title" hidden="{{!showFileName}}">Testing</span>
